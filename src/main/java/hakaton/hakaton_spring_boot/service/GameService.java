@@ -35,6 +35,22 @@ public class GameService {
                 randomQuestion.getAnswer4());
     }
 
+    public QuestionDto getQuestion() {
+        return new QuestionDto(
+                19L,
+                "Basics of Databases",
+                "What is the purpose of an index in a database?",
+                "To store data permanently",
+                "To perform mathematical calculations",
+                "To optimize data retrieval",
+                "To visualize data"
+                );
+    }
+
+    public String getAn(Long id) {
+        return "To optimize data retrieval";
+    }
+
     private String getCorrectAnswer(Long id) {
         Optional<Question> question = questionRepository.findById(id);
         return question.isPresent() ? question.get().getCorrectanswer() : "";
