@@ -23,7 +23,7 @@ public class Field {
         return cells.get(coordinates);
     }
 
-    public boolean checkCell(Coordinates coordinates, Owner owner) {
+    public boolean checkIfOwnerCanAttackCell(Coordinates coordinates, Owner owner) {
         if (coordinates.x() == 0 && coordinates.y() == 0) {
             return checkIsNeighbourCellControlledBySpecificOwnerWhileItNot(coordinates, owner, 0, 1) ||
                     checkIsNeighbourCellControlledBySpecificOwnerWhileItNot(coordinates, owner, 1, 0);
@@ -83,12 +83,19 @@ public class Field {
                 ).equals(owner);
     }
 
+    public List<Coordinates> getCoordinatesUnderOwnerControl(Owner owner) {
+        return cells.entrySet().stream()
+                .filter(cell -> cell.getValue().equals(owner))
+                .map(Map.Entry::getKey)
+                .toList();
+    }
+
     public List<Coordinates> getCoordinatesOfCellsPlayerCanAttack(Owner owner) {
         List<Coordinates> coordinates = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 Coordinates c = new Coordinates(i, j);
-                if (checkCell(c, owner)) {
+                if (checkIfOwnerCanAttackCell(c, owner)) {
                     coordinates.add(c);
                 }
             }

@@ -18,6 +18,7 @@ public class Bot {
     public Coordinates chooseCellAndAttack() {
         if (ThreadLocalRandom.current().nextDouble() < probability) {
             List<Coordinates> coordinates = field.getCoordinatesOfCellsPlayerCanAttack(Owner.BUG);
+            System.out.println(coordinates);
             Coordinates c = coordinates.get(ThreadLocalRandom.current().nextInt(coordinates.size()));
             field.changeOwnerOfCell(c, Owner.BUG);
             return c;

@@ -4,12 +4,12 @@ import hakaton.hakaton_spring_boot.controller.dto.RequestDto;
 import hakaton.hakaton_spring_boot.controller.dto.ResponseDto;
 import hakaton.hakaton_spring_boot.service.Coordinates;
 import hakaton.hakaton_spring_boot.service.GameService;
-import hakaton.hakaton_spring_boot.service.Question;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import hakaton.hakaton_spring_boot.service.dto.QuestionDto;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class GameController {
 
@@ -24,8 +24,17 @@ public class GameController {
         gameService.restartGame();
     }
 
+    @GetMapping("api/bugCells")
+    List<Coordinates> getCellsUnderBugControl() {
+        return gameService.getCellsUnderBotControl();
+    }
+    @GetMapping("api/playerCells")
+    List<Coordinates> getCellsUnderPlayerControl() {
+        return gameService.getCellsUnderPlayerControl();
+    }
+
     @GetMapping("/bugBusters")
-    Question getRandomQuestion() {
+    QuestionDto getRandomQuestion() {
         return gameService.getRandomQuestion();
     }
 
@@ -33,7 +42,7 @@ public class GameController {
     ResponseDto getAnswer(@RequestBody RequestDto requestDto) {
         String correctAnswer = gameService
                 .checkAnswerAndAttackIfItRight(
-                        requestDto.questionId(),
+                        (long)requestDto.questionId(),
                         requestDto.answer(),
                         new Coordinates(requestDto.x(), requestDto.y()));
 

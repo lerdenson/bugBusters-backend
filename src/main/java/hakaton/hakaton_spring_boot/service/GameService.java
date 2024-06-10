@@ -1,31 +1,60 @@
 package hakaton.hakaton_spring_boot.service;
 
+import hakaton.hakaton_spring_boot.repository.QuestionRepository;
+import hakaton.hakaton_spring_boot.repository.entity.Question;
+import hakaton.hakaton_spring_boot.service.dto.QuestionDto;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class GameService {
-    private Field field;
-    private Bot bot;
+    private final Field field;
+    private final Bot bot;
+    private final QuestionRepository questionRepository;
 
-    public GameService(Field field, Bot bot) {
-        this.field= field;
+    public GameService(QuestionRepository questionRepository, Field field, Bot bot) {
+        this.questionRepository = questionRepository;
+        this.field = field;
         this.bot = bot;
+        initializeField();
     }
 
-    public Question getRandomQuestion(){
-        return new Question(1, "1", "2", "3", "4", "5", "6", "4");
-    }
-    public String getCorrectAnswer(int questionId) {
-        return "4";
+    public QuestionDto getRandomQuestion() {
+        List<Question> questions = questionRepository.findAll();
+        Question randomQuestion = questions.get(ThreadLocalRandom.current().nextInt(questions.size()));
+        return new QuestionDto(
+                randomQuestion.getId(),
+                randomQuestion.getTheme(),
+                randomQuestion.getQuestion(),
+                randomQuestion.getAnswer1(),
+                randomQuestion.getAnswer2(),
+                randomQuestion.getAnswer3(),
+                randomQuestion.getAnswer4());
     }
 
-    public String checkAnswerAndAttackIfItRight(int questionId, String answer, Coordinates coordinates) {
+    private String getCorrectAnswer(Long id) {
+        Optional<Question> question = questionRepository.findById(id);
+        return question.isPresent() ? question.get().getCorrectanswer() : "";
+    }
+
+    public String checkAnswerAndAttackIfItRight(Long questionId, String answer, Coordinates coordinates) {
         String correctAnswer = getCorrectAnswer(questionId);
-        if (correctAnswer.equals(answer) && field.checkCell(coordinates, Owner.DEFENDER)) {
+        if (correctAnswer.equals(answer) && field.checkIfOwnerCanAttackCell(coordinates, Owner.DEFENDER)) {
             field.changeOwnerOfCell(coordinates, Owner.DEFENDER);
 
         }
         return correctAnswer;
+    }
+
+    public List<Coordinates> getCellsUnderBotControl() {
+        return field.getCoordinatesUnderOwnerControl(Owner.BUG);
+    }
+
+    public List<Coordinates> getCellsUnderPlayerControl() {
+        return field.getCoordinatesUnderOwnerControl(Owner.DEFENDER);
     }
 
     public Coordinates attackByBug() {
@@ -34,8 +63,8 @@ public class GameService {
 
     //return bug if bug wins, defender if player wins and neutral if game continues
     public int checkIsGameEnds() {
-        if (field.countCellsUnderOwnerControl(Owner.DEFENDER) == 0) return -1;
-        if (field.countCellsUnderOwnerControl(Owner.BUG) == 0) return 1;
+        if (getCellsUnderBotControl().isEmpty()) return 1;
+        if (getCellsUnderPlayerControl().isEmpty()) return -1;
         return 0;
     }
 
@@ -45,11 +74,7 @@ public class GameService {
 
     private void initializeField() {
         field.initializeField();
-        field.changeOwnerOfCell(new Coordinates(0, 0), Owner.DEFENDER);
-        field.changeOwnerOfCell(new Coordinates(3, 3), Owner.BUG);
-    }
-
-    public Field getField() {
-        return field;
+        field.changeOwnerOfCell(new Coordinates(0, 3), Owner.DEFENDER);
+        field.changeOwnerOfCell(new Coordinates(3, 0), Owner.BUG);
     }
 }
