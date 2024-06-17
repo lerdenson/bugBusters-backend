@@ -19,10 +19,6 @@ public class Field {
         cells.replace(coordinates, newOwner);
     }
 
-    public Owner getOwnerOfCell(Coordinates coordinates) {
-        return cells.get(coordinates);
-    }
-
     public boolean checkIfOwnerCanAttackCell(Coordinates coordinates, Owner owner) {
         if (coordinates.x() == 0 && coordinates.y() == 0) {
             return checkIsNeighbourCellControlledBySpecificOwnerWhileItNot(coordinates, owner, 0, 1) ||
@@ -116,12 +112,8 @@ public class Field {
         this.cells = cells;
     }
 
-    public long countCellsUnderOwnerControl(Owner owner) {
-        return cells
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue().equals(owner))
-                .count();
+    public Owner getOwnerOfCell(Coordinates coordinates) {
+        return cells.get(coordinates);
     }
 
     @Override

@@ -7,13 +7,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 public class GameService {
     private final Field field;
     private final Bot bot;
     private final QuestionRepository questionRepository;
+    private List<String> allowedThemes;
+
 
     public GameService(QuestionRepository questionRepository, Field field, Bot bot) {
         this.questionRepository = questionRepository;
@@ -23,7 +27,10 @@ public class GameService {
     }
 
     public QuestionDto getRandomQuestion() {
-        List<Question> questions = questionRepository.findAll();
+//        if (allowedThemes.isEmpty()) {
+//            setAllowedThemes(getAllThemes().stream().toList());
+//        }
+        List<Question> questions = questionRepository.findAll().stream().filter(question -> allowedThemes.contains(question.getTheme())).toList();
         Question randomQuestion = questions.get(ThreadLocalRandom.current().nextInt(questions.size()));
         return new QuestionDto(
                 randomQuestion.getId(),
@@ -35,6 +42,7 @@ public class GameService {
                 randomQuestion.getAnswer4());
     }
 
+/*
     public QuestionDto getQuestion() {
         return new QuestionDto(
                 19L,
@@ -50,10 +58,15 @@ public class GameService {
     public String getAn(Long id) {
         return "To optimize data retrieval";
     }
+*/
 
     private String getCorrectAnswer(Long id) {
         Optional<Question> question = questionRepository.findById(id);
         return question.isPresent() ? question.get().getCorrectanswer() : "";
+    }
+
+    public Set<String> getAllThemes() {
+        return questionRepository.findAll().stream().map(Question::getTheme).collect(Collectors.toSet());
     }
 
     public String checkAnswerAndAttackIfItRight(Long questionId, String answer, Coordinates coordinates) {
@@ -75,6 +88,17 @@ public class GameService {
 
     public Coordinates attackByBug() {
         return bot.chooseCellAndAttack();
+    }
+
+    public void setBotProbability(int probability) {
+        bot.setProbability(probability);
+    }
+
+    public void setAllowedThemes(List<String> themes) {
+        this.allowedThemes = themes;
+    }
+    public List<String> getAllowedThemes() {
+        return this.allowedThemes.stream().toList();
     }
 
     //return bug if bug wins, defender if player wins and neutral if game continues
